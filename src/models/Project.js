@@ -9,6 +9,7 @@ const ProjectSchema = new mongoose.Schema(
     technologies: [{ type: String, required: true, trim: true }], // Array of strings
     images: [{ type: String, trim: true }], // Array of image URLs
     mainImage: { type: String, required: true, trim: true }, // Main image URL
+    videos: [{ type: String, trim: true }], // Array of video URLs
     demoUrl: { type: String, trim: true },
     githubUrl: { type: String, trim: true },
     clientRemarks: { type: String, trim: true },

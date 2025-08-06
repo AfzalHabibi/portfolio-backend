@@ -1,4 +1,24 @@
 const SiteSettings = require("../models/SiteSettings")
+const fs = require("fs")
+const path = require("path")
+
+// Helper function to delete file
+const deleteFile = (filePath) => {
+  try {
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath)
+    }
+  } catch (error) {
+    console.error("Error deleting file:", error)
+  }
+}
+
+// Helper function to extract filename from URL
+const getFilenameFromUrl = (url) => {
+  if (!url) return null
+  const parts = url.split("/")
+  return parts[parts.length - 1]
+}
 
 // Get site settings
 exports.getSiteSettings = async (req, res) => {
@@ -25,6 +45,65 @@ exports.createSiteSettings = async (req, res) => {
   } catch (error) {
     console.error("Error creating site settings:", error)
     res.status(500).json({ message: "Server error creating site settings" })
+  }
+}
+
+// Update site settings with file uploads
+exports.updateSiteSettingsWithFiles = async (req, res) => {
+  try {
+    const updateData = { ...req.body }
+    
+    // Handle file uploads
+    if (req.files) {
+      // Handle profile image
+      if (req.files.profileImage && req.files.profileImage[0]) {
+        // Get current settings to delete old profile image
+        const currentSettings = await SiteSettings.findOne()
+        if (currentSettings && currentSettings.profileImage) {
+          const oldFilename = getFilenameFromUrl(currentSettings.profileImage)
+          if (oldFilename) {
+            const oldFilePath = path.join(__dirname, "..", "uploads", "images", oldFilename)
+            deleteFile(oldFilePath)
+          }
+        }
+        
+        updateData.profileImage = `${req.protocol}://${req.get("host")}/uploads/images/${req.files.profileImage[0].filename}`
+      }
+      
+      // Handle CV file
+      if (req.files.cv && req.files.cv[0]) {
+        // Get current settings to delete old CV
+        const currentSettings = await SiteSettings.findOne()
+        if (currentSettings && currentSettings.cvUrl) {
+          const oldFilename = getFilenameFromUrl(currentSettings.cvUrl)
+          if (oldFilename) {
+            const oldFilePath = path.join(__dirname, "..", "uploads", "documents", oldFilename)
+            deleteFile(oldFilePath)
+          }
+        }
+        
+        updateData.cvUrl = `${req.protocol}://${req.get("host")}/uploads/documents/${req.files.cv[0].filename}`
+      }
+    }
+
+    // Parse socialLinks if it comes as a string
+    if (typeof updateData.socialLinks === 'string') {
+      updateData.socialLinks = JSON.parse(updateData.socialLinks)
+    }
+
+    const updatedSettings = await SiteSettings.findOneAndUpdate({}, updateData, {
+      new: true,
+      upsert: true,
+      runValidators: true,
+    })
+
+    res.status(200).json({
+      message: "Site settings updated successfully with files",
+      settings: updatedSettings,
+    })
+  } catch (error) {
+    console.error("Error updating site settings with files:", error)
+    res.status(500).json({ message: "Server error updating site settings", error: error.message })
   }
 }
 

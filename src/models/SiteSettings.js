@@ -8,6 +8,7 @@ const SiteSettingsSchema = new mongoose.Schema(
     email: { type: String, required: true },
     phone: { type: String, required: true },
     location: { type: String, required: true },
+    profileImage: { type: String, default: "" }, // Profile image URL
     socialLinks: {
       linkedin: { type: String, default: "" },
       github: { type: String, default: "" },
@@ -35,6 +36,7 @@ SiteSettingsSchema.statics.getSettings = async function () {
       email: "your@email.com",
       phone: "+1234567890",
       location: "Your City, Country",
+      profileImage: "",
       socialLinks: {},
       cvUrl: "",
     })

@@ -130,3 +130,12 @@ Thumbs.db
 # Build directories
 build/
 dist/
+
+# Uploaded files (keep directory structure but ignore actual files)
+src/uploads/images/*
+src/uploads/videos/*
+src/uploads/documents/*
+!src/uploads/.gitkeep
+!src/uploads/images/.gitkeep
+!src/uploads/videos/.gitkeep
+!src/uploads/documents/.gitkeep
