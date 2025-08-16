@@ -1,0 +1,733 @@
+{
+	"info": {
+		"_postman_id": "61511557-6e70-479f-8564-81eb0676b64b",
+		"name": "Portfolio Backend API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "27523417"
+	},
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Register User",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"testuser@example.com\",\n    \"password\": \"testpassword123\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/register",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"register"
+							]
+						},
+						"description": "Registers a new user. Use a unique email each time or delete the user from MongoDB if you want to re-register the same email."
+					},
+					"response": []
+				},
+				{
+					"name": "Login User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"if (jsonData && jsonData.token) {",
+									"    pm.collectionVariables.set(\"jwtToken\", jsonData.token);",
+									"    console.log(\"JWT Token set: \" + jsonData.token);",
+									"} else {",
+									"    console.log(\"No token found in response.\");",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"admin@example.com\",\n    \"password\": \"adminpassword123\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"login"
+							]
+						},
+						"description": "Logs in a user and automatically saves the JWT to the 'jwtToken' collection variable for subsequent authenticated requests."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Site Settings",
+			"item": [
+				{
+					"name": "Get Site Settings",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/site-settings",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"site-settings"
+							]
+						},
+						"description": "Fetches the current site settings. This is a public endpoint."
+					},
+					"response": []
+				},
+				{
+					"name": "Update Site Settings",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwtToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"My Awesome Portfolio\",\n    \"title\": \"Lead Full Stack Developer\",\n    \"description\": \"Showcasing my latest projects and expertise in web development.\",\n    \"email\": \"info@myawesomeportfolio.com\",\n    \"phone\": \"+1-555-123-4567\",\n    \"location\": \"San Francisco, CA, USA\",\n    \"socialLinks\": {\n        \"linkedin\": \"https://linkedin.com/in/yourlinkedin\",\n        \"github\": \"https://github.com/yourgithub\",\n        \"twitter\": \"https://twitter.com/yourtwitter\",\n        \"instagram\": \"https://instagram.com/yourinstagram\",\n        \"behance\": \"\",\n        \"dribbble\": \"\"\n    },\n    \"cvUrl\": \"https://myawesomeportfolio.com/updated-cv.pdf\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/site-settings",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"site-settings"
+							]
+						},
+						"description": "Updates the site settings. This is a protected endpoint and requires a valid JWT. Make sure to run the 'Login User' request first to get a token."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Projects",
+			"item": [
+				{
+					"name": "Create Project with Files",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"if (jsonData && jsonData.project && jsonData.project._id) {",
+									"    pm.collectionVariables.set(\"projectId\", jsonData.project._id);",
+									"    console.log(\"Project ID set: \" + jsonData.project._id);",
+									"} else {",
+									"    console.log(\"No project ID found in response.\");",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwtToken}}"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "title",
+									"value": "Project with File Uploads",
+									"type": "text"
+								},
+								{
+									"key": "description",
+									"value": "A project created with actual file uploads",
+									"type": "text"
+								},
+								{
+									"key": "longDescription",
+									"value": "This project demonstrates the file upload functionality with images and videos. It showcases how files are properly handled and stored.",
+									"type": "text"
+								},
+								{
+									"key": "features",
+									"value": "[\"File Upload System\", \"Image Processing\", \"Video Handling\", \"Responsive Design\"]",
+									"type": "text"
+								},
+								{
+									"key": "technologies",
+									"value": "[\"React\", \"Node.js\", \"Express\", \"MongoDB\", \"Multer\"]",
+									"type": "text"
+								},
+								{
+									"key": "category",
+									"value": "Web Development",
+									"type": "text"
+								},
+								{
+									"key": "completedDate",
+									"value": "August 2025",
+									"type": "text"
+								},
+								{
+									"key": "demoUrl",
+									"value": "https://demo-file-upload.example.com",
+									"type": "text"
+								},
+								{
+									"key": "githubUrl",
+									"value": "https://github.com/yourusername/file-upload-project",
+									"type": "text"
+								},
+								{
+									"key": "clientRemarks",
+									"value": "Client loved the file upload feature!",
+									"type": "text"
+								},
+								{
+									"key": "mainImage",
+									"type": "file",
+									"src": []
+								},
+								{
+									"key": "images",
+									"type": "file",
+									"src": []
+								},
+								{
+									"key": "images",
+									"type": "file",
+									"src": []
+								},
+								{
+									"key": "videos",
+									"type": "file",
+									"src": []
+								}
+							]
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/projects/with-files",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"projects",
+								"with-files"
+							]
+						},
+						"description": "Creates a new project with file uploads. Select actual image and video files for mainImage, images, and videos fields. The mainImage is required."
+					},
+					"response": []
+				},
+				{
+					"name": "Update Project with Files",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwtToken}}"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "title",
+									"value": "Updated Project with New Files",
+									"type": "text"
+								},
+								{
+									"key": "description",
+									"value": "Updated project description with new files",
+									"type": "text"
+								},
+								{
+									"key": "longDescription",
+									"value": "This project has been updated with new files. Old files will be automatically deleted and replaced with new ones.",
+									"type": "text"
+								},
+								{
+									"key": "features",
+									"value": "[\"Updated File Upload\", \"New Image Processing\", \"Enhanced Video Handling\"]",
+									"type": "text"
+								},
+								{
+									"key": "technologies",
+									"value": "[\"React\", \"Node.js\", \"Express\", \"MongoDB\", \"Multer\", \"Sharp\"]",
+									"type": "text"
+								},
+								{
+									"key": "mainImage",
+									"type": "file",
+									"src": []
+								},
+								{
+									"key": "images",
+									"type": "file",
+									"src": []
+								},
+								{
+									"key": "videos",
+									"type": "file",
+									"src": []
+								}
+							]
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/projects/{{projectId}}/with-files",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"projects",
+								"{{projectId}}",
+								"with-files"
+							]
+						},
+						"description": "Updates an existing project with new file uploads. Old files will be automatically deleted. Make sure 'projectId' variable is set."
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Project",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwtToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/projects/{{projectId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"projects",
+								"{{projectId}}"
+							]
+						},
+						"description": "Deletes a project by ID. Requires authentication. Make sure 'projectId' variable is set (e.g., by running 'Create Project')."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Project by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/projects/{{projectId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"projects",
+								"{{projectId}}"
+							]
+						},
+						"description": "Fetches a single project by its ID. This is a public endpoint. Make sure 'projectId' variable is set (e.g., by running 'Create Project')."
+					},
+					"response": []
+				},
+				{
+					"name": "Update Project",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwtToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"Updated Portfolio Project Title\",\n    \"description\": \"This project has been updated.\",\n    \"features\": [\"Updated Feature A\", \"Updated Feature B\"]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/projects/{{projectId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"projects",
+								"{{projectId}}"
+							]
+						},
+						"description": "Updates an existing project by ID. Requires authentication. Make sure 'projectId' variable is set (e.g., by running 'Create Project')."
+					},
+					"response": []
+				},
+				{
+					"name": "Create Project",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"if (jsonData && jsonData.project && jsonData.project._id) {",
+									"    pm.collectionVariables.set(\"projectId\", jsonData.project._id);",
+									"    console.log(\"Project ID set: \" + jsonData.project._id);",
+									"} else {",
+									"    console.log(\"No project ID found in response.\");",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwtToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"New Portfolio Project\",\n    \"description\": \"A brief description of the new project.\",\n    \"longDescription\": \"This is a more detailed description of the new project, highlighting its features and the challenges overcome.\",\n    \"features\": [\"Feature A\", \"Feature B\", \"Feature C\"],\n    \"technologies\": [\"React\", \"Node.js\", \"Express\", \"MongoDB\"],\n    \"images\": [\"/images/new-project-1.jpg\", \"/images/new-project-2.jpg\"],\n    \"mainImage\": \"/images/new-project-main.jpg\",\n    \"demoUrl\": \"https://demo.newproject.com\",\n    \"githubUrl\": \"https://github.com/yourusername/new-project\",\n    \"category\": \"Web Development\",\n    \"completedDate\": \"July 2024\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/projects",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"projects"
+							]
+						},
+						"description": "Creates a new project. Requires authentication. Automatically saves the new project's ID to 'projectId' variable."
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Projects",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/projects",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"projects"
+							]
+						},
+						"description": "Fetches all projects. This is a public endpoint."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "File Uploads",
+			"item": [
+				{
+					"name": "Upload Project Files",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwtToken}}"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "mainImage",
+									"type": "file",
+									"src": []
+								},
+								{
+									"key": "images",
+									"type": "file",
+									"src": []
+								},
+								{
+									"key": "images",
+									"type": "file",
+									"src": []
+								},
+								{
+									"key": "videos",
+									"type": "file",
+									"src": []
+								}
+							]
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/upload/project-files",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"upload",
+								"project-files"
+							]
+						},
+						"description": "Upload files separately and get URLs to use in project creation/update. Returns file URLs that can be used in regular project endpoints."
+					},
+					"response": []
+				},
+				{
+					"name": "Upload Single Image",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwtToken}}"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "image",
+									"type": "file",
+									"src": []
+								}
+							]
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/upload/image",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"upload",
+								"image"
+							]
+						},
+						"description": "Upload a single image file. Returns the file URL."
+					},
+					"response": []
+				},
+				{
+					"name": "Upload Multiple Images",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwtToken}}"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "images",
+									"type": "file",
+									"src": []
+								},
+								{
+									"key": "images",
+									"type": "file",
+									"src": []
+								},
+								{
+									"key": "images",
+									"type": "file",
+									"src": []
+								}
+							]
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/upload/images",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"upload",
+								"images"
+							]
+						},
+						"description": "Upload multiple image files at once. Returns array of file URLs."
+					},
+					"response": []
+				},
+				{
+					"name": "Upload Single Video",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwtToken}}"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "video",
+									"type": "file",
+									"src": []
+								}
+							]
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/upload/video",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"upload",
+								"video"
+							]
+						},
+						"description": "Upload a single video file. Returns the file URL."
+					},
+					"response": []
+				},
+				{
+					"name": "Upload Document",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwtToken}}"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "document",
+									"type": "file",
+									"src": []
+								}
+							]
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/upload/document",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"upload",
+								"document"
+							]
+						},
+						"description": "Upload a document file (PDF, DOC, DOCX). Returns the file URL."
+					},
+					"response": []
+				},
+				{
+					"name": "Delete File",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwtToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/upload/images/filename.jpg",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"upload",
+								"images",
+								"filename.jpg"
+							]
+						},
+						"description": "Delete an uploaded file. Replace 'images' with 'videos' or 'documents' as needed, and 'filename.jpg' with the actual filename."
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:3000",
+			"type": "string"
+		},
+		{
+			"key": "jwtToken",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "projectId",
+			"value": ""
+		}
+	]
+}
