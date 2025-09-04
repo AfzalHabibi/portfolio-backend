@@ -197,11 +197,33 @@ exports.updateProjectWithFiles = async (req, res) => {
     const projectData = { ...req.body }
     const uploadsDir = path.join(__dirname, "..", "uploads")
     
+    // Parse existing images/videos to keep
+    let existingImages = []
+    let existingVideos = []
+    
+    if (projectData.existingImages) {
+      try {
+        existingImages = JSON.parse(projectData.existingImages)
+      } catch (e) {
+        existingImages = []
+      }
+      delete projectData.existingImages
+    }
+    
+    if (projectData.existingVideos) {
+      try {
+        existingVideos = JSON.parse(projectData.existingVideos)
+      } catch (e) {
+        existingVideos = []
+      }
+      delete projectData.existingVideos
+    }
+    
     // Handle file URLs from uploaded files
     if (req.files) {
       // Handle main image replacement
       if (req.files.mainImage && req.files.mainImage[0]) {
-        // Delete old main image if exists
+        // Delete old main image if exists and different
         if (existingProject.mainImage) {
           const oldMainImageFilename = getFilenameFromUrl(existingProject.mainImage)
           if (oldMainImageFilename) {
@@ -212,38 +234,89 @@ exports.updateProjectWithFiles = async (req, res) => {
         projectData.mainImage = `${req.protocol}://${req.get("host")}/uploads/images/${req.files.mainImage[0].filename}`
       }
       
-      // Handle additional images replacement
+      // Handle additional images
+      const newImages = []
       if (req.files.images) {
-        // Delete old images if replacing
-        if (existingProject.images && existingProject.images.length > 0) {
-          existingProject.images.forEach((imageUrl) => {
+        // Add new uploaded images
+        newImages.push(...req.files.images.map(
+          (file) => `${req.protocol}://${req.get("host")}/uploads/images/${file.filename}`
+        ))
+      }
+      
+      // Combine existing images with new ones
+      projectData.images = [...existingImages, ...newImages]
+      
+      // Delete images that are no longer needed
+      if (existingProject.images && existingProject.images.length > 0) {
+        existingProject.images.forEach((imageUrl) => {
+          if (!existingImages.includes(imageUrl)) {
             const filename = getFilenameFromUrl(imageUrl)
             if (filename) {
               const imagePath = path.join(uploadsDir, "images", filename)
               deleteFile(imagePath)
             }
-          })
-        }
-        projectData.images = req.files.images.map(
-          (file) => `${req.protocol}://${req.get("host")}/uploads/images/${file.filename}`
-        )
+          }
+        })
       }
       
-      // Handle videos replacement
+      // Handle videos
+      const newVideos = []
       if (req.files.videos) {
-        // Delete old videos if replacing
-        if (existingProject.videos && existingProject.videos.length > 0) {
-          existingProject.videos.forEach((videoUrl) => {
+        // Add new uploaded videos
+        newVideos.push(...req.files.videos.map(
+          (file) => `${req.protocol}://${req.get("host")}/uploads/videos/${file.filename}`
+        ))
+      }
+      
+      // Combine existing videos with new ones
+      projectData.videos = [...existingVideos, ...newVideos]
+      
+      // Delete videos that are no longer needed
+      if (existingProject.videos && existingProject.videos.length > 0) {
+        existingProject.videos.forEach((videoUrl) => {
+          if (!existingVideos.includes(videoUrl)) {
             const filename = getFilenameFromUrl(videoUrl)
             if (filename) {
               const videoPath = path.join(uploadsDir, "videos", filename)
               deleteFile(videoPath)
             }
+          }
+        })
+      }
+    } else {
+      // No new files uploaded, just keep existing ones
+      if (existingImages.length > 0) {
+        projectData.images = existingImages
+        
+        // Delete images that are no longer needed
+        if (existingProject.images && existingProject.images.length > 0) {
+          existingProject.images.forEach((imageUrl) => {
+            if (!existingImages.includes(imageUrl)) {
+              const filename = getFilenameFromUrl(imageUrl)
+              if (filename) {
+                const imagePath = path.join(uploadsDir, "images", filename)
+                deleteFile(imagePath)
+              }
+            }
           })
         }
-        projectData.videos = req.files.videos.map(
-          (file) => `${req.protocol}://${req.get("host")}/uploads/videos/${file.filename}`
-        )
+      }
+      
+      if (existingVideos.length > 0) {
+        projectData.videos = existingVideos
+        
+        // Delete videos that are no longer needed
+        if (existingProject.videos && existingProject.videos.length > 0) {
+          existingProject.videos.forEach((videoUrl) => {
+            if (!existingVideos.includes(videoUrl)) {
+              const filename = getFilenameFromUrl(videoUrl)
+              if (filename) {
+                const videoPath = path.join(uploadsDir, "videos", filename)
+                deleteFile(videoPath)
+              }
+            }
+          })
+        }
       }
     }
 
