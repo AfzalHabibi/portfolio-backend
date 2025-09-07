@@ -1,6 +1,7 @@
 const express = require("express")
 const {
   createSkill,
+  createSkillDirect,
   getAllSkills,
   getSkillById,
   updateSkill,
@@ -17,6 +18,9 @@ const router = express.Router()
 // Public routes
 router.get("/", getAllSkills)
 router.get("/:id", getSkillById)
+
+// Protected routes - Direct skill creation
+router.post("/direct", protect, createSkillDirect)
 
 // Protected routes - Categories
 router.post("/", protect, createSkill)
