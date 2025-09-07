@@ -24,7 +24,9 @@ exports.createSkillDirect = async (req, res) => {
       difficulty_handled,
       endorsements = [],
       icon,
-      color
+      color,
+      isActive = true,
+      isFeatured = false
     } = req.body
 
     // Validate required fields
@@ -44,8 +46,14 @@ exports.createSkillDirect = async (req, res) => {
         description: `${category.trim()} related skills`,
         icon: icon || 'fas fa-code',
         color: color || '#0ea5e9',
+        isFeatured: isFeatured || false,
         items: []
       })
+    } else {
+      // Update existing category's isFeatured status if provided
+      if (isFeatured !== undefined) {
+        skillCategory.isFeatured = isFeatured
+      }
     }
 
     // Check if skill already exists in this category
@@ -79,7 +87,7 @@ exports.createSkillDirect = async (req, res) => {
       endorsements: endorsements.filter(e => e.trim()),
       icon: icon?.trim(),
       color: color?.trim() || '#0ea5e9',
-      isActive: true,
+      isActive: isActive !== false,
       displayOrder: skillCategory.items.length
     }
 
@@ -103,7 +111,7 @@ exports.createSkillDirect = async (req, res) => {
 // @access  Private (Admin/Authenticated User)
 exports.createSkill = async (req, res) => {
   try {
-    const { category, description, icon, color, items = [] } = req.body
+    const { category, description, icon, color, isFeatured = false, items = [] } = req.body
 
     // Check if category already exists
     const existingSkill = await Skill.findOne({ category: category.trim() })
@@ -127,6 +135,7 @@ exports.createSkill = async (req, res) => {
       description: description?.trim(),
       icon: icon?.trim(),
       color: color?.trim() || "#0ea5e9",
+      isFeatured: isFeatured || false,
       items: items.map((item, index) => ({
         ...item,
         displayOrder: item.displayOrder || index
@@ -202,13 +211,14 @@ exports.getSkillById = async (req, res) => {
 // @access  Private (Admin/Authenticated User)
 exports.updateSkill = async (req, res) => {
   try {
-    const { category, description, icon, color, items } = req.body
+    const { category, description, icon, color, isFeatured, items } = req.body
 
     const updateData = {}
     if (category) updateData.category = category.trim()
     if (description !== undefined) updateData.description = description?.trim()
     if (icon !== undefined) updateData.icon = icon?.trim()
     if (color !== undefined) updateData.color = color?.trim()
+    if (isFeatured !== undefined) updateData.isFeatured = isFeatured
     if (items !== undefined) {
       // Validate skill items
       for (const item of items) {

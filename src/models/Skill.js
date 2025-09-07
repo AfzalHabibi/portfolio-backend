@@ -25,6 +25,7 @@ const SkillItemSchema = new mongoose.Schema({
   icon: { type: String, trim: true },
   color: { type: String, trim: true, default: "#0ea5e9" },
   isActive: { type: Boolean, default: true },
+  isFeatured: { type: Boolean, default: false },
   displayOrder: { type: Number, default: 0 }
 }, { _id: true })
 
@@ -35,6 +36,7 @@ const SkillSchema = new mongoose.Schema(
     icon: { type: String, trim: true },
     color: { type: String, trim: true, default: "#0ea5e9" },
     isActive: { type: Boolean, default: true },
+    isFeatured: { type: Boolean, default: false },
     displayOrder: { type: Number, default: 0 },
     items: [SkillItemSchema]
   },

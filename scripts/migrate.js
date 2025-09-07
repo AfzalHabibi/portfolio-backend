@@ -2,6 +2,7 @@ require("dotenv").config({ path: "./.env" }) // Explicitly load .env for standal
 const mongoose = require("mongoose")
 const SiteSettings = require("../src/models/SiteSettings") // Adjust path if needed
 const User = require("../src/models/User") // Adjust path if needed
+const Skill = require("../src/models/Skill") // Added for Skills migration
 
 const MONGO_URI = process.env.MONGO_URI
 
@@ -23,6 +24,22 @@ async function runMigrations() {
     )
     console.log(`Modified ${result.modifiedCount} SiteSettings documents.`)
 
+    // --- Migration 2: Add 'isFeatured' field to Skills ---
+    console.log("Running migration: Adding 'isFeatured' field to Skills...")
+    const skillResult = await Skill.updateMany(
+      { isFeatured: { $exists: false } }, // Find documents without this field
+      { $set: { isFeatured: false } }, // Set default value to false
+    )
+    console.log(`Modified ${skillResult.modifiedCount} Skill documents.`)
+
+    // --- Migration 3: Add 'isFeatured' field to Skill items ---
+    console.log("Running migration: Adding 'isFeatured' field to Skill items...")
+    const skillItemResult = await Skill.updateMany(
+      { "items.isFeatured": { $exists: false } }, // Find documents with items missing this field
+      { $set: { "items.$[].isFeatured": false } }, // Set default value to false for all items
+    )
+    console.log(`Modified ${skillItemResult.modifiedCount} Skill documents with item updates.`)
+
     // --- Add more migrations here as needed ---
     // Example: Rename a field
     // console.log("Running migration: Renaming 'oldField' to 'newField' in someCollection...")
@@ -38,5 +55,5 @@ async function runMigrations() {
     console.log("MongoDB disconnected.")
   }
 }
-
+  
 runMigrations()
