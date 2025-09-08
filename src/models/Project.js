@@ -18,6 +18,7 @@ const ProjectSchema = new mongoose.Schema(
   },
   {
     timestamps: true, // Adds createdAt and updatedAt fields
+    collection: "projects", // Specify collection name
   },
 )
 
